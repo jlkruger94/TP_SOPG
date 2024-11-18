@@ -70,4 +70,7 @@ dkms.conf
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+# Ignore all executables without extensions in the root
+/*
+
 # End of https://www.toptal.com/developers/gitignore/api/c,linux
