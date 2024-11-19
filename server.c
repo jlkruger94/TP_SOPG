@@ -51,7 +51,7 @@ static int analize_cliente_req(char* req, char* res, size_t max_length);
 /* === Private function implementation ========================================================= */
 static int analize_cliente_req(char* req, char* res, size_t max_length) {
     /* Valida los parametros de entrada */
-    if (req == NULL || res == NULL) return GENERIC_ERROR;
+    if (req == NULL || res == NULL) return FATAL_ERROR;
 
     /* Si el último caracter es un salto de linea lo elimino */
     int str_length_req = stdc_strlen(req) - 1;
@@ -64,8 +64,8 @@ static int analize_cliente_req(char* req, char* res, size_t max_length) {
 
     /* Verifica si se encuentran los elementos necesarios para operar */
     if (cmd == NULL || key == NULL) {
-        printf("Error en el comando recibido\n");
-        return GENERIC_ERROR;
+        printf("server: Error en el comando recibido\n");
+        return FATAL_ERROR;
     }
 
     char filepath[BUFFER_LENGTH_S];
@@ -83,13 +83,13 @@ static int analize_cliente_req(char* req, char* res, size_t max_length) {
         if (f == GENERIC_ERROR) {
             perror("Error al abrir el archivo");
             /* Fallo inadmisible */
-            exit(EXIT_FAILURE);
+            return FATAL_ERROR;
         }
         int n = write(f, value, stdc_strlen(value));
         if (n == GENERIC_ERROR) {
             /* Fallo inadmisible */
-            perror("Error al escribir el archivo");
-            exit(EXIT_FAILURE);
+            perror("server: Error al escribir el archivo");
+            return FATAL_ERROR;
         }
         close(f);
 
@@ -128,8 +128,8 @@ static int analize_cliente_req(char* req, char* res, size_t max_length) {
         return SUCCESS;
     } else {
         /* Error inadmisible */
-        printf("Error en el comando recibido\n");
-        exit(EXIT_FAILURE);
+        printf("server: Error en el comando recibido\n");
+        return FATAL_ERROR;
     }
 
     return GENERIC_ERROR;
@@ -180,18 +180,22 @@ int main(void) {
 
         /* Leemos mensaje de cliente */
         char buffer[BUFFER_LENGTH_S] = { 0 };
+        char response [BUFFER_LENGTH_S] = { 0 };
+
         int n = read(newfd, buffer, sizeof(buffer));
         if (n == GENERIC_ERROR) {
             perror("read");
             exit(EXIT_FAILURE);
         }
         buffer[n] = 0x00;
-        if (analize_cliente_req(buffer,buffer,sizeof(buffer)) != SUCCESS) {
+        int result = analize_cliente_req(buffer,response,sizeof(buffer));
+        if (result != SUCCESS) {
             perror("server: Algo salió mal");
+            if (result == FATAL_ERROR) exit(EXIT_FAILURE);
         }
 
         /* Enviamos mensaje a cliente */
-        n = write(newfd, buffer, stdc_strlen(buffer));
+        n = write(newfd, response, stdc_strlen(response));
         if (n == GENERIC_ERROR) {
             perror("write");
             exit(EXIT_FAILURE);

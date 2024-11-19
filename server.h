@@ -38,6 +38,7 @@ extern "C" {
 #define SERVER_PORT 5000
 #define BUFFER_LENGTH_S 256
 #define GENERIC_ERROR -1
+#define FATAL_ERROR -2
 #define IP_CLIENT_LENGTH 32
 #define MAX_CMD_LENGTH 4
 #define SUCCESS 0
