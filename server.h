@@ -35,7 +35,13 @@ extern "C" {
 #endif
 
 /* === Public macros definitions =============================================================== */
-
+#define SERVER_PORT 5000
+#define BUFFER_LENGTH_S 256
+#define GENERIC_ERROR -1
+#define IP_CLIENT_LENGTH 32
+#define MAX_CMD_LENGTH 4
+#define SUCCESS 0
+#define FILE_PREMISSION 0644
 /* === Public data type declarations =========================================================== */
 
 /* === Public variable declarations ============================================================ */

@@ -72,5 +72,5 @@ dkms.conf
 
 # Ignore all executables without extensions in the root
 /*
-
+*.txt
 # End of https://www.toptal.com/developers/gitignore/api/c,linux
