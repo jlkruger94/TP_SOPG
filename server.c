@@ -50,6 +50,18 @@ static int analyze_client_req(char* req, char* res, size_t max_length);
 
 /* === Private function implementation ========================================================= */
 
+/*
+* @name analyze_client_req
+* @brief Procesa y ejecuta comandos enviados por el cliente en formato clave-valor.
+* @params
+*   - req: Cadena que contiene el comando del cliente en formato ASCII.
+*   - res: Cadena donde se almacenará la respuesta del servidor.
+*   - max_length: Tamaño máximo permitido para la respuesta.
+* @retval
+*   - `SUCCESS` si el comando se ejecutó correctamente.
+*   - `FATAL_ERROR` en caso de error crítico.
+*   - `GENERIC_ERROR` en caso de error general (e.g., archivo no encontrado).
+*/
 static int analyze_client_req(char* req, char* res, size_t max_length) {
     /* Validación inicial */
     if (req == NULL || res == NULL || max_length == 0) return FATAL_ERROR;
@@ -140,6 +152,15 @@ static int analyze_client_req(char* req, char* res, size_t max_length) {
 
 /* === Public function implementation ========================================================== */
 
+/*
+* @name main
+* @brief Punto de entrada del servidor TCP. Acepta conexiones y procesa comandos clave-valor.
+* @params
+*   - Ninguno.
+* @retval
+*   - `EXIT_SUCCESS` si el servidor se ejecuta correctamente.
+*   - Finaliza el programa con `EXIT_FAILURE` en caso de error crítico.
+*/
 int main(void) {
     /* Creamos socket */
     int s = socket(AF_INET, SOCK_STREAM, 0);

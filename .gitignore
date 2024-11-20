@@ -71,6 +71,6 @@ dkms.conf
 .nfs*
 
 # Ignore all executables without extensions in the root
-/*
+server
 *.txt
 # End of https://www.toptal.com/developers/gitignore/api/c,linux
