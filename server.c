@@ -43,96 +43,99 @@ SPDX-License-Identifier: MIT
 /* === Private variable declarations =========================================================== */
 
 /* === Private function declarations =========================================================== */
-static int analize_cliente_req(char* req, char* res, size_t max_length);
+static int analyze_client_req(char* req, char* res, size_t max_length);
 /* === Public variable definitions ============================================================= */
 
 /* === Private variable definitions ============================================================ */
 
 /* === Private function implementation ========================================================= */
-static int analize_cliente_req(char* req, char* res, size_t max_length) {
-    /* Valida los parametros de entrada */
-    if (req == NULL || res == NULL) return FATAL_ERROR;
 
-    /* Si el último caracter es un salto de linea lo elimino */
-    int str_length_req = stdc_strlen(req) - 1;
-    if (req[str_length_req] == '\n') req[str_length_req] = 0x00;
+static int analyze_client_req(char* req, char* res, size_t max_length) {
+    /* Validación inicial */
+    if (req == NULL || res == NULL || max_length == 0) return FATAL_ERROR;
 
-    /* Obtiene los elementos de la petición */
-    char *cmd = stdc_split(req," ");
-    char *key = stdc_split(NULL," ");
-    char *value = stdc_split(NULL," ");
+    /* Eliminar salto de línea si existe */
+    int req_length = stdc_strlen(req);
+    if (req_length > 0 && req[req_length - 1] == '\n') {
+        req[req_length - 1] = '\0';
+    }
 
-    /* Verifica si se encuentran los elementos necesarios para operar */
+    /* Obtener elementos del comando */
+    char *cmd = stdc_split(req, " ");
+    char *key = stdc_split(NULL, " ");
+    char *value = stdc_split(NULL, " ");
+
+    /* Validar elementos */
     if (cmd == NULL || key == NULL) {
-        printf("server: Error en el comando recibido\n");
+        snprintf(res, max_length, "server: Error, comando invalido\n");
         return FATAL_ERROR;
     }
 
+    /* Buffer para operaciones con archivos */
     char filepath[BUFFER_LENGTH_S];
-    int f;
-    /* Arma el path del archivo */
-    snprintf(filepath,sizeof(filepath),"%s.txt",key);
+    snprintf(filepath, sizeof(filepath), "%s.txt", key);
 
     /**********  SET *********************/
-    if (stdc_strncmp(cmd,"SET", MAX_CMD_LENGTH) == SUCCESS) {
-        /* Arma la respuesta */
-        snprintf(res,max_length,"%s","OK\n");
+    if (stdc_strncmp(cmd, "SET", MAX_CMD_LENGTH) == SUCCESS) {
+        /* Validar value */
+        if (value == NULL) {
+            printf("server: Error, no existe un valor a Setear\n");
+            return FATAL_ERROR;
+        }
 
-        /* Crea un archivo llamado key en el dir base */
-        f = open(filepath,O_CREAT | O_WRONLY | O_TRUNC,FILE_PREMISSION);
-        if (f == GENERIC_ERROR) {
+        /* Crear/abrir archivo */
+        int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, FILE_PERMISSION);
+        if (fd == GENERIC_ERROR) {
             perror("Error al abrir el archivo");
-            /* Fallo inadmisible */
             return FATAL_ERROR;
         }
-        int n = write(f, value, stdc_strlen(value));
-        if (n == GENERIC_ERROR) {
-            /* Fallo inadmisible */
-            perror("server: Error al escribir el archivo");
-            return FATAL_ERROR;
-        }
-        close(f);
 
+        /* Escribir valor en el archivo */
+        if (write(fd, value, stdc_strlen(value)) == GENERIC_ERROR) {
+            perror("Error al escribir en el archivo");
+            close(fd);
+            return FATAL_ERROR;
+        }
+
+        close(fd);
+        snprintf(res, max_length, "OK\n");
         return SUCCESS;
     }
     /**********  GET *********************/
-    else if (stdc_strncmp(cmd,"GET", MAX_CMD_LENGTH) == SUCCESS) {
-        char value[BUFFER_LENGTH_S];
-        /* Arma una repuesta por defecto*/
-        snprintf(res,max_length,"%s","NOTFOUND\n");
+    else if (stdc_strncmp(cmd, "GET", MAX_CMD_LENGTH) == SUCCESS) {
+        /* Leer archivo */
+        int fd = open(filepath, O_RDONLY);
+        if (fd == GENERIC_ERROR) {
+            snprintf(res, max_length, "NOTFOUND\n");
+            return GENERIC_ERROR;
+        }
 
-        /* Abre el archivo en modo lectura */
-        int f = open(filepath, O_RDONLY);
-        if (f == GENERIC_ERROR) {
-            return GENERIC_ERROR;
+        char value[BUFFER_LENGTH_S];
+        ssize_t bytes_read = read(fd, value, sizeof(value) - 1);
+        close(fd);
+
+        if (bytes_read == GENERIC_ERROR) {
+            printf("server: Error al leer el archivo\n");
+            return FATAL_ERROR;
         }
-        int n = read(f, value, max_length - 1);
-        if (n == GENERIC_ERROR) {
-            return GENERIC_ERROR;
-        }
-        close(f);
-        /* Arma la respuesta */
-        snprintf(res,max_length,"OK\n%s\n",value);
+
+        value[bytes_read] = '\0';
+        snprintf(res, max_length, "OK\n%s\n", value);
         return SUCCESS;
     }
     /**********  DEL *********************/
-    else if (stdc_strncmp(cmd,"DEL", MAX_CMD_LENGTH) == SUCCESS) {
-        /* Arma la respuesta */
-        snprintf(res,max_length,"%s","OK\n");
+    else if (stdc_strncmp(cmd, "DEL", MAX_CMD_LENGTH) == SUCCESS) {
 
-        /* Eliminar el archivo */
+        snprintf(res, max_length, "OK\n");
+        /* Eliminar archivo */
         if (unlink(filepath) == GENERIC_ERROR) {
-           // perror("Error al eliminar el archivo");
             return GENERIC_ERROR;
         }
         return SUCCESS;
     } else {
-        /* Error inadmisible */
-        printf("server: Error en el comando recibido\n");
+        printf("server: Error, comando no encontrado\n");
         return FATAL_ERROR;
     }
-
-    return GENERIC_ERROR;
 }
 
 /* === Public function implementation ========================================================== */
@@ -188,10 +191,10 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
         buffer[n] = 0x00;
-        int result = analize_cliente_req(buffer,response,sizeof(buffer));
+        int result = analyze_client_req(buffer,response,sizeof(buffer));
         if (result != SUCCESS) {
-            perror("server: Algo salió mal");
             if (result == FATAL_ERROR) exit(EXIT_FAILURE);
+            perror("server: Algo salió mal");
         }
 
         /* Enviamos mensaje a cliente */

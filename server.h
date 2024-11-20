@@ -42,7 +42,7 @@ extern "C" {
 #define IP_CLIENT_LENGTH 32
 #define MAX_CMD_LENGTH 4
 #define SUCCESS 0
-#define FILE_PREMISSION 0644
+#define FILE_PERMISSION 0644
 /* === Public data type declarations =========================================================== */
 
 /* === Public variable declarations ============================================================ */
