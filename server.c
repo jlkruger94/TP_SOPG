@@ -225,7 +225,11 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
         printf("server: envie %d bytes\n", n);
-
+#ifdef _SERVER_SIDE_CLOSE_CONN
+        /* Cerramos conexion con cliente (Paso 4 de la guía)*/
+        close(newfd);
+        continue;
+#endif
         /* Esperamos a que el cliente cierre */
         printf("server: esperando a que el cliente cierre la conexion...\n");
         n = read(newfd, buffer, sizeof(buffer));

@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
 
 /* === Headers files inclusions =============================================================== */
 
-#include "server.h"
+#include "stdc.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <strings.h>

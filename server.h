@@ -43,6 +43,8 @@ extern "C" {
 #define MAX_CMD_LENGTH 4
 #define SUCCESS 0
 #define FILE_PERMISSION 0644
+/* Parametro que permite que el servidor cierre la conexión sin esperar al cliente */
+#define _SERVER_SIDE_CLOSE_CONN
 /* === Public data type declarations =========================================================== */
 
 /* === Public variable declarations ============================================================ */
